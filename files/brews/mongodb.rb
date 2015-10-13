@@ -4,8 +4,8 @@ class Mongodb < Formula
   homepage "https://www.mongodb.org/"
 
   stable do
-    url "https://fastdl.mongodb.org/src/mongodb-src-r2.6.5.tar.gz"
-    sha1 "f5a68505a0de1152b534d62a8f0147d258d503a0"
+    url "https://fastdl.mongodb.org/src/mongodb-src-r2.6.8.tar.gz"
+    sha1 "d67254ef3ba5ba81e21c56be9b919c3a10e01b32"
 
     # Review this patch with the next stable release.
     # Note it is a different patch to the one applied to all builds further below.
@@ -16,30 +16,27 @@ class Mongodb < Formula
         sha1 "63d901ac81681fbe8b92dc918954b247990ab2fb"
       end
     end
-  end
-
-  version '2.6.5-boxen1'
-
-  bottle do
-    revision 2
-    sha1 "e6da509908fdacf9eb0f16e850e0516cd0898072" => :yosemite
-    sha1 "5ab96fe864e725461eea856e138417994f50bb32" => :mavericks
-    sha1 "193e639b7b79fbb18cb2e0a6bbabfbc9b8cbc042" => :mountain_lion
-  end
-
-  devel do
-    url "https://fastdl.mongodb.org/src/mongodb-src-r2.7.7.tar.gz"
-    sha1 "ce223f5793bdf5b3e1420b0ede2f2403e9f94e5a"
-
-    # Remove this with the next devel release. Already merged in HEAD.
-    # https://github.com/mongodb/mongo/commit/8b8e90fb
-    patch do
-      url "https://github.com/mongodb/mongo/commit/8b8e90fb.diff"
-      sha1 "9f9ce609c7692930976690cae68aa4fce1f8bca3"
+    if MacOS.version == :el_capitan
+      patch do
+        url "https://gist.githubusercontent.com/patrickod/cf8d177c949eaf25e18f/raw/219946186c0ba286e1a6c641c7c5d1f0487f766f/mongodb_el_capitan.diff"
+        sha1 "7fe780472930b07f9b0bcb7ed72a6c3682b79a06"
+      end
     end
   end
 
-  # HEAD is currently failing. See https://jira.mongodb.org/browse/SERVER-15555
+  version '2.6.8-boxen1'
+
+  bottle do
+    sha1 "2841ae12013757c67605edd084a94c5a709c5345" => :yosemite
+    sha1 "2c5f3f581a322948140af65a51906b15b8b18778" => :mavericks
+    sha1 "8aa4750499fdeb325e7fe6d3a72aab186861ca90" => :mountain_lion
+  end
+
+  devel do
+    url "https://fastdl.mongodb.org/src/mongodb-src-r3.1.1.tar.gz"
+    sha1 "a0d9ae6baa6034d5373b3ffe082a8fea5c14774f"
+  end
+
   head "https://github.com/mongodb/mongo.git"
 
   option "with-boost", "Compile using installed boost, not the version shipped with mongodb"
@@ -66,6 +63,12 @@ class Mongodb < Formula
       --cxx=#{ENV.cxx}
       --osx-version-min=#{MacOS.version}
     ]
+
+    # For Yosemite with Clang 3.5+ we need this to build Mongo pre 2.7.7
+    # See: https://github.com/mongodb/mongo/pull/956#issuecomment-94545753
+    if MacOS.version == :yosemite || MacOS.version == :el_capitan
+      args << "--disable-warnings-as-errors"
+    end
 
     # --full installs development headers and client library, not just binaries
     # (only supported pre-2.7)
